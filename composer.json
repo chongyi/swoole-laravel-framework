@@ -1,0 +1,20 @@
+{
+    "name": "chongyi/swoole-laravel-framework",
+    "description": "Rebuild laravel framework on swoole.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "chongyi",
+            "email": "xpz3847878@163.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Swoole\\Laravel\\": "src/"
+        }
+    },
+    "require": {
+        "ext-swoole": "~1.8",
+        "laravel/framework": "5.1.*"
+    }
+}
