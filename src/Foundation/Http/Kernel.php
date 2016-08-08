@@ -68,6 +68,15 @@ class Kernel extends LaravelKernel
         ]);
     }
 
+    /**
+     * Get swoole server instance
+     *
+     * @return Server
+     */
+    public function getSwooleServer()
+    {
+        return $this->swoole;
+    }
 
     /**
      * Start the swoole http service
