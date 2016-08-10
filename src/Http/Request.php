@@ -21,6 +21,11 @@ use Swoole\Http\Request as SwooleRequest;
 class Request extends LaravelRequest
 {
     /**
+     * @var
+     */
+    protected $convertedFiles;
+
+    /**
      * Create a new Illuminate HTTP request from server variables.
      */
     public static function capture()
@@ -39,11 +44,11 @@ class Request extends LaravelRequest
     {
         static::enableHttpMethodParameterOverride();
 
-        $get     = isset($request->get) ? static::keyUpper($request->get) : [];
-        $post    = isset($request->post) ? static::keyUpper($request->post) : [];
-        $cookies = isset($request->cookie) ? static::keyUpper($request->cookie) : [];
+        $get     = isset($request->get) ? $request->get : [];
+        $post    = isset($request->post) ? $request->post : [];
+        $cookies = isset($request->cookie) ? $request->cookie : [];
         $server  = isset($request->server) ? static::keyUpper($request->server) : [];
-        $files   = isset($request->files) ? static::keyUpper($request->files) : [];
+        $files   = isset($request->files) ? $request->files : [];
 
         if ('cli-server' === PHP_SAPI) {
             if (array_key_exists('HTTP_CONTENT_LENGTH', $server)) {
@@ -90,8 +95,9 @@ class Request extends LaravelRequest
     /**
      * Retrieve a file from the request.
      *
-     * @param  string  $key
+     * @param  string $key
      * @param  mixed  $default
+     *
      * @return \Symfony\Component\HttpFoundation\File\UploadedFile|UploadedFile|array|null
      */
     public function file($key = null, $default = null)
@@ -108,14 +114,17 @@ class Request extends LaravelRequest
     public function allFiles()
     {
         $files = $this->files->all();
+
         return $this->convertedFiles
             ? $this->convertedFiles
             : $this->convertedFiles = $this->convertUploadedFiles($files);
     }
+
     /**
      * Convert the given array of Symfony UploadedFiles to custom Laravel UploadedFiles.
      *
-     * @param  array  $files
+     * @param  array $files
+     *
      * @return array
      */
     protected function convertUploadedFiles(array $files)

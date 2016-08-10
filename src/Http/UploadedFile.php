@@ -8,6 +8,7 @@
 
 namespace Swoole\Laravel\Http;
 
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile as SymfonyUploadedFile;
 use Illuminate\Support\Traits\Macroable;
 
@@ -19,6 +20,8 @@ use Illuminate\Support\Traits\Macroable;
 class UploadedFile extends SymfonyUploadedFile
 {
     use Macroable;
+
+    private $test;
 
     /**
      * Get the fully qualified path to the file.
@@ -78,4 +81,34 @@ class UploadedFile extends SymfonyUploadedFile
             $test
         );
     }
+
+    /**
+     * @param string $directory
+     * @param null   $name
+     *
+     * @return \Symfony\Component\HttpFoundation\File\File
+     */
+    public function move($directory, $name = null)
+    {
+        if ($this->isValid()) {
+            if ($this->test) {
+                return parent::move($directory, $name);
+            }
+
+            $target = $this->getTargetFile($directory, $name);
+
+            if (!@rename($this->getPathname(), $target)) {
+                $error = error_get_last();
+                throw new FileException(sprintf('Could not move the file "%s" to "%s" (%s)', $this->getPathname(), $target, strip_tags($error['message'])));
+            }
+
+            @chmod($target, 0666 & ~umask());
+
+            return $target;
+        }
+
+        throw new FileException($this->getErrorMessage());
+    }
+
+
 }
