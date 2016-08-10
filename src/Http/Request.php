@@ -87,4 +87,59 @@ class Request extends LaravelRequest
         return array_combine($keys, $values);
     }
 
+    /**
+     * Retrieve a file from the request.
+     *
+     * @param  string  $key
+     * @param  mixed  $default
+     * @return \Symfony\Component\HttpFoundation\File\UploadedFile|UploadedFile|array|null
+     */
+    public function file($key = null, $default = null)
+    {
+        return data_get($this->allFiles(), $key, $default);
+    }
+
+
+    /**
+     * Get an array of all of the files on the request.
+     *
+     * @return array
+     */
+    public function allFiles()
+    {
+        $files = $this->files->all();
+        return $this->convertedFiles
+            ? $this->convertedFiles
+            : $this->convertedFiles = $this->convertUploadedFiles($files);
+    }
+    /**
+     * Convert the given array of Symfony UploadedFiles to custom Laravel UploadedFiles.
+     *
+     * @param  array  $files
+     * @return array
+     */
+    protected function convertUploadedFiles(array $files)
+    {
+        return array_map(function ($file) {
+            if (is_null($file) || (is_array($file) && empty(array_filter($file)))) {
+                return $file;
+            }
+
+            return is_array($file)
+                ? $this->convertUploadedFiles($file)
+                : UploadedFile::createFromBase($file);
+        }, $files);
+    }
+
+    /**
+     * Get all of the input and files for the request.
+     *
+     * @return array
+     */
+    public function all()
+    {
+        return array_replace_recursive($this->input(), $this->allFiles());
+    }
+
+
 }
