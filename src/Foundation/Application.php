@@ -40,7 +40,7 @@ class Application extends LaravelApplication
 
         // For compatibility
         (new ProviderRepository($this, new Filesystem, $manifestPath))
-            ->load(array_diff($this->config['app.providers'], $this->config['app.swoole_providers']));
+            ->load(array_diff($this->config['app.providers'], $this->config['swoole.providers']));
     }
 
 
@@ -52,7 +52,7 @@ class Application extends LaravelApplication
         $manifestPath = $this->basePath() . '/bootstrap/cache/swoole-services.json';
 
         (new ProviderRepository($this, new Filesystem(), $manifestPath))
-            ->load($this->config['app.swoole_providers']);
+            ->load($this->config['swoole.providers']);
     }
 
     /**

@@ -86,6 +86,10 @@ class Kernel extends LaravelKernel
         // This's default bootstrap process, but it's moved here because most of boot options should not be reloaded.
         $this->bootstrap();
 
+        // Read swoole configure file.
+        $settings = $this->getApplication()->make('config')->get('swoole.settings');
+
+        $this->swoole->set($settings);
         $this->swoole->on('request', function (SwooleRequest $request, SwooleResponse $response) {
             $realRequest  = Request::captureViaSwooleRequest($request);
             $realResponse = $this->handle($realRequest);
