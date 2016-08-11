@@ -100,6 +100,11 @@ class Kernel extends LaravelKernel
                 }
             }
 
+            foreach ($realResponse->headers->getCookies() as $cookie) {
+                $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
+                    $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
+            }
+
             $response->status($realResponse->getStatusCode());
             $response->end($realResponse->getContent());
         });
