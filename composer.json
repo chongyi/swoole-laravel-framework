@@ -1,6 +1,7 @@
 {
     "name": "chongyi/swoole-laravel-framework",
     "description": "Rebuild laravel framework on swoole.",
+    "minimum-stability": "dev",
     "license": "MIT",
     "authors": [
         {
