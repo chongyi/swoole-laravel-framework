@@ -16,5 +16,8 @@
     "require": {
         "ext-swoole": "~1.8",
         "laravel/framework": "5.1.*"
-    }
+    },
+    "bin": [
+        "bin/swoole"
+    ]
 }

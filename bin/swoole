@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+use Symfony\Component\Console\Application;
+use Swoole\Laravel\Foundation\Console\SwooleServiceCommand;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+
+$autoload = [
+    __DIR__ . '/../../bootstrap/autoload.php',
+    __DIR__ . '/../autoload.php'
+];
+
+$autoloadFileRequired = false;
+
+foreach ($autoload as $file) {
+    if (file_exists($file)) {
+        require $file;
+        $autoloadFileRequired = true;
+
+        break;
+    }
+}
+
+if ($autoloadFileRequired) {
+    if (file_exists($file = __DIR__ . '/../../bootstrap/swoole-app.php')) {
+        $app = require $file;
+
+        $command = new SwooleServiceCommand();
+        $command->setApp($app);
+
+        $console = new Application();
+        $console->add($command);
+
+        $console->run();
+    } else {
+        throw new FileNotFoundException('Swoole application instance is not found.');
+    }
+
+
+} else {
+    throw new FileNotFoundException('Autoload file is not found.');
+}

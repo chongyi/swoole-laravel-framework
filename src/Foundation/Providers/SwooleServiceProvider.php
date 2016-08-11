@@ -22,7 +22,10 @@ class SwooleServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->publishes([__DIR__ . '/stubs/swoole.php' => config_path('swoole.php')]);
+        $this->publishes([
+            __DIR__ . '/stubs/swoole.php'     => config_path('swoole.php'),
+            __DIR__ . '/stubs/swoole-app.php' => base_path('bootstrap/swoole-app.php'),
+        ]);
     }
 
     /**
