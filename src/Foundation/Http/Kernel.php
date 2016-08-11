@@ -13,9 +13,11 @@ use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Facade;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
+use Swoole\Http\Response;
 use Swoole\Http\Server;
 use Swoole\Laravel\Foundation\Bootstrap\RegisterProviders;
 use Swoole\Laravel\Http\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Class Kernel
@@ -101,14 +103,30 @@ class Kernel extends LaravelKernel
             }
 
             foreach ($realResponse->headers->getCookies() as $cookie) {
-                $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(),
+                $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(),
+                    $cookie->getPath(),
                     $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
             }
 
             $response->status($realResponse->getStatusCode());
-            $response->end($realResponse->getContent());
+            $this->processTerminate($response, $realResponse);
         });
 
         $this->swoole->start();
+    }
+
+    /**
+     * Terminate the http request process
+     *
+     * @param Response                                                      $swooleResponse
+     * @param \Symfony\Component\HttpFoundation\Response|BinaryFileResponse $realResponse
+     */
+    protected function processTerminate(Response $swooleResponse, $realResponse)
+    {
+        if ($realResponse instanceof BinaryFileResponse) {
+            $swooleResponse->sendfile($realResponse->getFile()->getPathname());
+        } else {
+            $swooleResponse->end($realResponse->getContent());
+        }
     }
 }
