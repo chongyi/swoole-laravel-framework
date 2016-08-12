@@ -11,6 +11,8 @@ namespace Swoole\Laravel\Foundation;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Application as LaravelApplication;
 use Illuminate\Foundation\ProviderRepository;
+use Illuminate\Events\EventServiceProvider;
+use Illuminate\Routing\RoutingServiceProvider;
 
 /**
  * Class Application
@@ -28,6 +30,18 @@ class Application extends LaravelApplication
      * @var array
      */
     protected $bootedServiceProviders = [];
+
+    /**
+     * Register all of the base service providers.
+     *
+     * @return void
+     */
+    protected function registerBaseServiceProviders()
+    {
+        $this->register(new EventServiceProvider($this), [], true);
+        $this->register(new RoutingServiceProvider($this), [], true);
+    }
+
 
     /**
      * Register all of the configured providers (without swoole service providers).
@@ -154,6 +168,14 @@ class Application extends LaravelApplication
                 $this->alias($key, $alias);
             }
         }
+    }
+
+    /**
+     * Rebuild application.
+     */
+    public function rebuild()
+    {
+        $this->registerBaseServiceProviders();
     }
 
     /**

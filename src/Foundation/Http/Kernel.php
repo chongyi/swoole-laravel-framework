@@ -12,6 +12,7 @@ use Illuminate\Container\Container;
 use Illuminate\Foundation\Bootstrap\RegisterFacades;
 use Illuminate\Foundation\Http\Kernel as LaravelKernel;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
 use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
@@ -52,8 +53,9 @@ class Kernel extends LaravelKernel
      */
     protected function sendRequestThroughRouter($request)
     {
-        $this->app->instance('request', $request);
+        $this->rebuildApplication();
 
+        $this->app->instance('request', $request);
         Facade::clearResolvedInstance('request');
 
         $this->swooleBootstrap();
@@ -69,14 +71,6 @@ class Kernel extends LaravelKernel
      */
     protected function swooleBootstrap()
     {
-        if ($this->backupApplication) {
-            $this->app = clone $this->backupApplication;
-        } else {
-            $this->backupApplication = clone $this->app;
-        }
-
-        Container::setInstance($this->app);
-
         $this->app->bootstrapWith([
             RegisterFacades::class,
             RegisterProviders::class,
@@ -144,5 +138,22 @@ class Kernel extends LaravelKernel
         } else {
             $swooleResponse->end($realResponse->getContent());
         }
+    }
+
+    /**
+     * Rebuild application when swoole server get a new request.
+     */
+    protected function rebuildApplication()
+    {
+        if ($this->backupApplication) {
+            $this->app = clone $this->backupApplication;
+        } else {
+            $this->backupApplication = clone $this->app;
+        }
+
+        Container::setInstance($this->app);
+
+        $this->app->rebuild();
+        $this->router = $this->app->make(Router::class);
     }
 }
