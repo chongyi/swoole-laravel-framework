@@ -123,6 +123,9 @@ class Kernel extends LaravelKernel
 
             $response->status($realResponse->getStatusCode());
             $this->processTerminate($response, $realResponse);
+
+            // Terminate the process
+            $this->terminate($realRequest, $realResponse);
         });
 
         $this->swoole->start();
