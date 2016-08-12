@@ -8,6 +8,8 @@
 
 namespace Swoole\Laravel\Foundation\Http;
 
+use Illuminate\Container\Container;
+use Illuminate\Foundation\Bootstrap\RegisterFacades;
 use Illuminate\Foundation\Http\Kernel as LaravelKernel;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Facade;
@@ -30,6 +32,8 @@ class Kernel extends LaravelKernel
      * @var Server
      */
     protected $swoole;
+
+    protected $backupApplication;
 
     /**
      * Set the swoole server instance
@@ -65,7 +69,16 @@ class Kernel extends LaravelKernel
      */
     protected function swooleBootstrap()
     {
+        if ($this->backupApplication) {
+            $this->app = clone $this->backupApplication;
+        } else {
+            $this->backupApplication = clone $this->app;
+        }
+
+        Container::setInstance($this->app);
+
         $this->app->bootstrapWith([
+            RegisterFacades::class,
             RegisterProviders::class,
         ]);
     }

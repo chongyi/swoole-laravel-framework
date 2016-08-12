@@ -156,5 +156,21 @@ class Application extends LaravelApplication
         }
     }
 
+    /**
+     * When an object is cloned, PHP 5 will perform a shallow copy of all of the object's properties.
+     * Any properties that are references to other variables, will remain references.
+     * Once the cloning is complete, if a __clone() method is defined,
+     * then the newly created object's __clone() method will be called, to allow any necessary properties that need to
+     * be changed. NOT CALLABLE DIRECTLY.
+     *
+     * @return mixed
+     * @link http://php.net/manual/en/language.oop5.cloning.php
+     */
+    public function __clone()
+    {
+        static::setInstance($this);
 
+        $this->instance('app', $this);
+        $this->instance('Illuminate\Container\Container', $this);
+    }
 }
