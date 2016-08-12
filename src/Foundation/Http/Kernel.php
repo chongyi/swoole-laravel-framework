@@ -34,6 +34,9 @@ class Kernel extends LaravelKernel
      */
     protected $swoole;
 
+    /**
+     * @var
+     */
     protected $backupApplication;
 
     /**
@@ -99,28 +102,7 @@ class Kernel extends LaravelKernel
         $settings = $this->getApplication()->make('config')->get('swoole.settings');
 
         $this->swoole->set($settings);
-        $this->swoole->on('request', function (SwooleRequest $request, SwooleResponse $response) {
-            $realRequest  = Request::captureViaSwooleRequest($request);
-            $realResponse = $this->handle($realRequest);
-
-            foreach ($realResponse->headers->allPreserveCase() as $name => $values) {
-                foreach ($values as $value) {
-                    $response->header($name, $value);
-                }
-            }
-
-            foreach ($realResponse->headers->getCookies() as $cookie) {
-                $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(),
-                    $cookie->getPath(),
-                    $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
-            }
-
-            $response->status($realResponse->getStatusCode());
-            $this->processTerminate($response, $realResponse);
-
-            // Terminate the process
-            $this->terminate($realRequest, $realResponse);
-        });
+        $this->swoole->on('request', [$this, 'onRequest']);
 
         $this->swoole->start();
     }
@@ -155,5 +137,35 @@ class Kernel extends LaravelKernel
 
         $this->app->rebuild();
         $this->router = $this->app->make(Router::class);
+    }
+
+    /**
+     * To service new request.
+     *
+     * @param SwooleRequest $request
+     * @param Response      $response
+     */
+    protected function onRequest(SwooleRequest $request, SwooleResponse $response)
+    {
+        $realRequest  = Request::captureViaSwooleRequest($request);
+        $realResponse = $this->handle($realRequest);
+
+        foreach ($realResponse->headers->allPreserveCase() as $name => $values) {
+            foreach ($values as $value) {
+                $response->header($name, $value);
+            }
+        }
+
+        foreach ($realResponse->headers->getCookies() as $cookie) {
+            $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(),
+                $cookie->getPath(),
+                $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
+        }
+
+        $response->status($realResponse->getStatusCode());
+        $this->processTerminate($response, $realResponse);
+
+        // Terminate the process
+        $this->terminate($realRequest, $realResponse);
     }
 }
