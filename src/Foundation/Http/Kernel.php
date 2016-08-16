@@ -9,7 +9,6 @@
 namespace Swoole\Laravel\Foundation\Http;
 
 use Illuminate\Container\Container;
-use Illuminate\Foundation\Bootstrap\RegisterFacades;
 use Illuminate\Foundation\Http\Kernel as LaravelKernel;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Routing\Router;
@@ -18,6 +17,7 @@ use Swoole\Http\Request as SwooleRequest;
 use Swoole\Http\Response as SwooleResponse;
 use Swoole\Http\Response;
 use Swoole\Http\Server;
+use Swoole\Laravel\Foundation\Bootstrap\RegisterFacades;
 use Swoole\Laravel\Foundation\Bootstrap\RegisterProviders;
 use Swoole\Laravel\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -113,7 +113,7 @@ class Kernel extends LaravelKernel
      * @param Response                                                      $swooleResponse
      * @param \Symfony\Component\HttpFoundation\Response|BinaryFileResponse $realResponse
      */
-    protected function processTerminate(Response $swooleResponse, $realResponse)
+    protected function terminateRequestProcess(Response $swooleResponse, $realResponse)
     {
         if ($realResponse instanceof BinaryFileResponse) {
             $swooleResponse->sendfile($realResponse->getFile()->getPathname());
@@ -133,6 +133,7 @@ class Kernel extends LaravelKernel
             $this->backupApplication = clone $this->app;
         }
 
+        // Reset container instance
         Container::setInstance($this->app);
 
         $this->app->rebuild();
@@ -145,27 +146,39 @@ class Kernel extends LaravelKernel
      * @param SwooleRequest $request
      * @param Response      $response
      */
-    protected function onRequest(SwooleRequest $request, SwooleResponse $response)
+    public function onRequest(SwooleRequest $request, SwooleResponse $response)
     {
         $realRequest  = Request::captureViaSwooleRequest($request);
         $realResponse = $this->handle($realRequest);
 
+        $this->formatResponse($response, $realResponse);
+
+        // Terminate the process
+        $this->terminate($realRequest, $realResponse);
+    }
+
+    /**
+     * @param Response $response
+     * @param          $realResponse
+     */
+    protected function formatResponse(SwooleResponse $response, $realResponse)
+    {
+        // Build header.
         foreach ($realResponse->headers->allPreserveCase() as $name => $values) {
             foreach ($values as $value) {
                 $response->header($name, $value);
             }
         }
 
+        // Build cookies.
         foreach ($realResponse->headers->getCookies() as $cookie) {
             $response->cookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(),
                 $cookie->getPath(),
                 $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
         }
 
+        // Set HTTP status code into the swoole response.
         $response->status($realResponse->getStatusCode());
-        $this->processTerminate($response, $realResponse);
-
-        // Terminate the process
-        $this->terminate($realRequest, $realResponse);
+        $this->terminateRequestProcess($response, $realResponse);
     }
 }
