@@ -8,6 +8,10 @@ php:
 
 sudo: required
 
+before_install:
+  - pecl install swoole
+  - echo "extension=swoole.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
 before_script:
   - composer install --no-progress --prefer-source
 
