@@ -6,7 +6,9 @@ use Illuminate\Contracts\Filesystem\FileNotFoundException;
 
 $autoload = [
     __DIR__ . '/../../bootstrap/autoload.php',
-    __DIR__ . '/../autoload.php'
+    __DIR__ . '/../../../../bootstrap/autoload.php',
+    __DIR__ . '/../autoload.php',
+    __DIR__ . '/../../../autoload.php',
 ];
 
 $autoloadFileRequired = false;
