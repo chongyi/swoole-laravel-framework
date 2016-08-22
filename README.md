@@ -11,8 +11,8 @@
 
 ## Requirement
 
-1. 由于是基于 Laravel 5.1 开发, 因此要求 PHP >= 5.5.9
-2. 如上, 要求 Laravel Framework >= 5.1
+1. 由于是基于 Laravel 5.2 开发, 因此要求 PHP >= 5.5.9
+2. 如上, 要求 Laravel Framework >= 5.2
 3. **Swoole 扩展**
 
 > Swoole 扩展目前不支持 Windows, 将来也不太可能支持。不过只要部署目标机器是 *nix 系统即可。 对于 Windows 下开发的人群, 
