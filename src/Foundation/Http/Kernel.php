@@ -138,6 +138,14 @@ class Kernel extends LaravelKernel
 
         $this->app->rebuild();
         $this->router = $this->app->make(Router::class);
+
+        foreach ($this->middlewareGroups as $key => $middleware) {
+            $this->router->middlewareGroup($key, $middleware);
+        }
+
+        foreach ($this->routeMiddleware as $key => $middleware) {
+            $this->router->middleware($key, $middleware);
+        }
     }
 
     /**
